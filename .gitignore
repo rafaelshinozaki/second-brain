@@ -1,8 +1,10 @@
 # Secrets & data — never commit
 .env
 data/
+backups/
 *.dump
 *.log
+*.zip
 
 # Vendored/patched image source (created locally by enable-remote-access.sh)
 config/graphiti_mcp_server.py

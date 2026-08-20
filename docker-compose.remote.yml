@@ -1,0 +1,16 @@
+# Generated for remote access on the local network (trusted network only).
+# Exposes the brain on the LAN IP 192.168.15.2 in addition to localhost, and
+# mounts the patched MCP server (host='0.0.0.0') so it accepts remote Host headers.
+#
+# Bring the stack up with BOTH files:
+#   docker compose -f docker-compose.yml -f docker-compose.remote.yml up -d
+services:
+  neo4j:
+    ports:
+      - "192.168.15.2:7474:7474"
+      - "192.168.15.2:7687:7687"
+  graphiti-mcp:
+    ports:
+      - "192.168.15.2:8020:8020"
+    volumes:
+      - ./config/graphiti_mcp_server.py:/app/mcp/src/graphiti_mcp_server.py:ro

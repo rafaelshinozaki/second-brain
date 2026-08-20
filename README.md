@@ -8,6 +8,9 @@ learns becomes available to all the others.
 Fully **self-hosted and local** (no cloud required, no API bills): a small Docker
 stack plus your local [Ollama](https://ollama.com) models.
 
+> 📌 **Este setup (Rafael):** para o estado atual da nossa instalação e como usar
+> do Mac/rede como cliente, veja **[`docs/USO-SECOND-BRAIN.md`](docs/USO-SECOND-BRAIN.md)**.
+
 <p align="center">
   <img src="docs/architecture.svg" alt="AI Second Brain architecture: agents connect over MCP to a Graphiti server backed by Neo4j, with a local Ollama providing the LLM and embeddings" width="860">
 </p>
