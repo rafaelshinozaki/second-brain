@@ -32,15 +32,34 @@ cérebro (servidor) e como o **Mac** (ou qualquer máquina da rede) usa como
 
 ### Grupos (`group_id`) em uso
 
+Reorganizado em 02/09/2026: como o Graphiti não tem hierarquia real de grupos
+(`group_id` é só uma string usada como filtro), a hierarquia é simulada por
+convenção de prefixo. Trabalho do The Hackett Group usa `hackett-`; projetos
+pessoais usam `personal-`; projetos de outra empresa usam o nome dela.
+
 | group_id | Para |
 |---|---|
-| `global` | Conhecimento transversal, sobre você/a máquina |
-| `work` | Trabalho / empresa em geral |
-| `infra` | Infra, Docker, servidores, rede |
-| `aixelerator` | Ecossistema Aixelerator / Kainam / Mirador |
-| `<projeto>` | Um grupo por projeto relevante (ex.: `sda`) |
+| `global` | Conhecimento transversal, sobre você/a máquina, e a própria convenção de grupos |
+| `hackett-aixelerator` | Ecossistema Aixelerator / AIX / Kainam / Mirador (The Hackett Group) |
+| `hackett-xda` | Achados e reuniões específicas do projeto XDA (The Hackett Group) |
+| `hackett-avira-health` | Projeto Avira Health (The Hackett Group) |
+| `personal-<projeto>` | Projetos pessoais |
+| `<empresa>-<projeto>` | Projetos de outras empresas |
 
-Na dúvida, use `global`. Para **buscar**, pode omitir o grupo (busca cruza todos).
+Para "conectar" assuntos entre grupos relacionados na busca, passe todos os
+`group_ids` desejados explicitamente (ex.: `["hackett-aixelerator", "hackett-xda"]`)
+— não existe busca automática cruzando grupos.
+
+Na dúvida, use `global`.
+
+> ⚠️ **`group_id` (escrita) vs `group_ids` (leitura) — não existe "buscar em
+> tudo" implícito.** O `add_memory` usa `group_id` (singular). Já `get_episodes`,
+> `search_nodes` e `search_memory_facts` usam `group_ids` (**plural, lista**) —
+> mandar `group_id` nessas ferramentas é **ignorado silenciosamente**. Omitir
+> `group_ids` **não** busca em todos os grupos: cai no grupo default do servidor
+> (`GRAPHITI_GROUP_ID`, `global` por padrão), que normalmente tem quase nada —
+> então uma leitura sem `group_ids` parece "cérebro vazio" mesmo com os dados
+> intactos. Sempre passe `group_ids` explicitamente, ex.: `group_ids: ["aixelerator"]`.
 
 ---
 

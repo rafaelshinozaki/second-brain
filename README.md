@@ -138,7 +138,16 @@ does Acme use?"* or *"where does Odoo run?"* and get the answer via hybrid searc
 - **Temporal:** add a newer fact and the old one is kept but marked past — you can
   query current *and* historical state.
 - **Groups:** write into a `group_id` (`global`, `work`, a project name, …) to keep
-  things tidy; search can span all groups. See [`AGENTS.md`](AGENTS.md).
+  things tidy. See [`AGENTS.md`](AGENTS.md).
+
+> ⚠️ **`group_id` (write) vs `group_ids` (read) — and no implicit "search all".**
+> `add_memory` takes `group_id` (singular). Every read tool (`get_episodes`,
+> `search_nodes`, `search_memory_facts`) takes `group_ids` (**plural array**)
+> instead — passing `group_id` there is silently ignored. Omitting `group_ids`
+> does **not** search across every group; it falls back to the server's default
+> group (`GRAPHITI_GROUP_ID`, `global` by default), which usually holds almost
+> nothing — so a read with no `group_ids` can look like an empty brain even
+> though your data is fine. Always pass `group_ids` explicitly.
 
 The MCP tools exposed are roughly: `add_memory`, `search_memory_facts`,
 `search_nodes`, `get_episodes`, plus a few management tools (`get_status`,
@@ -344,6 +353,11 @@ docker compose up -d --build
 
 ## Troubleshooting
 
+- **Searches/`get_episodes` return almost nothing, or only one old memory, even
+  though you know you saved more** → you're hitting the `group_id` vs
+  `group_ids` trap (see [How it works](#how-it-works)). Read tools need
+  `group_ids` as an array; without it they silently fall back to the default
+  group (`global`), not "all groups". Pass `group_ids` explicitly.
 - **Agent client says "fetch failed" / can't connect from another machine** →
   you're hitting the localhost-only default. See [Remote access](#remote-access).
   Use the endpoint **without** a trailing slash (`/mcp`, not `/mcp/`).

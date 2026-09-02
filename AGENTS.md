@@ -39,21 +39,32 @@ Graphiti extracts the entities (Acme Corp, Odoo, Docker, nova) and relationships
 
 ---
 
-## Groups (`group_id`)
+## Groups (`group_id` / `group_ids`)
 
-Write into the right group; when unsure use `global`. Example scheme (customize
-for yourself):
+Write into the right group; when unsure use `global`. Since Graphiti's
+`group_id` has no real hierarchy (it's just a string used as a filter),
+simulate hierarchy with a name prefix: employer-scoped work under
+`<employer>-`, personal projects under `personal-`, other companies under
+`<company>-`. Example scheme (customize for yourself):
 
 | group_id | For |
 |---|---|
-| `global` | Cross-cutting knowledge, about you or your machine |
-| `work` | Your job / company |
-| `personal` | Personal notes |
-| `infra` | Infrastructure, Docker, servers, networking |
-| `learning` | How-tos, references, things you learned |
-| `<project>` | One group per significant project |
+| `global` | Cross-cutting knowledge, about you, your machine, or the brain's own conventions |
+| `<employer>-<project>` | Work for a specific employer, one group per project (e.g. `hackett-aixelerator`, `hackett-xda`) |
+| `personal-<project>` | Personal projects |
+| `<company>-<project>` | Projects for other companies/clients |
 
-To **search** you can omit the group and find relevant things across all of them.
+> ⚠️ **Parameter name differs between writing and reading, and there is no
+> "search everything" default.** `add_memory` takes `group_id` (singular
+> string). Every read tool — `get_episodes`, `search_nodes`,
+> `search_memory_facts` — takes `group_ids` (**plural**, an array). Passing
+> `group_id` to a read tool is silently ignored (no error), and omitting
+> `group_ids` does **not** search across all groups — it falls back to the
+> server's default group (`GRAPHITI_GROUP_ID` in `.env`, `global` by default).
+> Since `global` usually holds almost nothing, this looks exactly like "the
+> brain is empty" even though your data is intact. Always pass `group_ids`
+> explicitly on reads, e.g. `group_ids: ["aixelerator"]`, or list every group
+> you care about if you want a broad search.
 
 ---
 
