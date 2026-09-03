@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 600" font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f5f8fc"/>
+    </linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0b1b3a" flood-opacity="0.10"/>
+    </filter>
+    <marker id="arw" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#8a94a6"/>
+    </marker>
+    <marker id="arwL" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M7,0 L0,3 L7,6 Z" fill="#8a94a6"/>
+    </marker>
+  </defs>
+
+  <!-- card -->
+  <rect x="8" y="8" width="1024" height="584" rx="16" fill="url(#card)" stroke="#d7dee7"/>
+
+  <!-- header badge -->
+  <rect x="650" y="44" width="332" height="34" rx="17" fill="#eef1f5" stroke="#cfd6df"/>
+  <circle cx="672" cy="61" r="5" fill="#12b886"/>
+  <text x="686" y="65" font-size="13" fill="#3a4658">100% local &#183; self-hosted &#183; no API keys required</text>
+
+  <!-- ============ AI AGENTS ============ -->
+  <rect x="60" y="44" width="460" height="112" rx="12" fill="#f1eeff" stroke="#7c5cff" stroke-width="1.5" filter="url(#sh)"/>
+  <circle cx="82" cy="70" r="5" fill="#7c5cff"/>
+  <text x="96" y="75" font-size="16" font-weight="700" fill="#2b2350">AI Agents</text>
+  <!-- chips row 1 -->
+  <g font-size="12.5" fill="#344054">
+    <rect x="80"  y="88" width="112" height="26" rx="13" fill="#ffffff" stroke="#d7dee7"/><text x="136" y="105" text-anchor="middle">Claude Code</text>
+    <rect x="200" y="88" width="74"  height="26" rx="13" fill="#ffffff" stroke="#d7dee7"/><text x="237" y="105" text-anchor="middle">Cursor</text>
+    <rect x="282" y="88" width="94"  height="26" rx="13" fill="#ffffff" stroke="#d7dee7"/><text x="329" y="105" text-anchor="middle">Codex CLI</text>
+    <!-- chips row 2 -->
+    <rect x="80"  y="120" width="98"  height="26" rx="13" fill="#ffffff" stroke="#d7dee7"/><text x="129" y="137" text-anchor="middle">Gemini CLI</text>
+    <rect x="186" y="120" width="140" height="26" rx="13" fill="#ffffff" stroke="#d7dee7"/><text x="256" y="137" text-anchor="middle">Any MCP client</text>
+  </g>
+
+  <!-- arrow agents -> mcp -->
+  <line x1="290" y1="156" x2="290" y2="196" stroke="#8a94a6" stroke-width="2" marker-end="url(#arw)"/>
+  <text x="300" y="181" font-size="12" fill="#667085">MCP &#183; HTTP</text>
+
+  <!-- ============ MCP SERVER ============ -->
+  <rect x="60" y="196" width="460" height="66" rx="12" fill="#e8f1ff" stroke="#2f81f7" stroke-width="1.5" filter="url(#sh)"/>
+  <circle cx="82" cy="222" r="5" fill="#2f81f7"/>
+  <text x="96" y="227" font-size="16" font-weight="700" fill="#12305f">Graphiti MCP Server</text>
+  <text x="96" y="248" font-size="12.5" fill="#4a5b73">exposes memory tools &#183; port 8020</text>
+
+  <line x1="290" y1="262" x2="290" y2="302" stroke="#8a94a6" stroke-width="2" marker-end="url(#arw)"/>
+
+  <!-- ============ GRAPHITI ============ -->
+  <rect x="60" y="302" width="460" height="94" rx="12" fill="#e6f7f1" stroke="#12b886" stroke-width="1.5" filter="url(#sh)"/>
+  <circle cx="82" cy="330" r="5" fill="#12b886"/>
+  <text x="96" y="335" font-size="16" font-weight="700" fill="#0c5b45">Graphiti &#8212; memory engine</text>
+  <text x="96" y="358" font-size="12.5" fill="#376b5b">entity &amp; relationship extraction</text>
+  <text x="96" y="377" font-size="12.5" fill="#376b5b">temporal memory &#183; hybrid (semantic + graph) search</text>
+
+  <line x1="290" y1="396" x2="290" y2="436" stroke="#8a94a6" stroke-width="2" marker-end="url(#arw)"/>
+
+  <!-- ============ NEO4J ============ -->
+  <rect x="60" y="436" width="460" height="78" rx="12" fill="#fdeee9" stroke="#f0603a" stroke-width="1.5" filter="url(#sh)"/>
+  <circle cx="82" cy="466" r="5" fill="#f0603a"/>
+  <text x="96" y="471" font-size="16" font-weight="700" fill="#8a2f18">Neo4j &#8212; knowledge graph</text>
+  <text x="96" y="493" font-size="12.5" fill="#7a4436">Bolt 7687 &#183; Browser 7474 (explore visually)</text>
+
+  <!-- ============ OLLAMA ============ -->
+  <rect x="650" y="302" width="332" height="94" rx="12" fill="#eef1f5" stroke="#334155" stroke-width="1.5" filter="url(#sh)"/>
+  <circle cx="672" cy="330" r="5" fill="#334155"/>
+  <text x="686" y="335" font-size="16" font-weight="700" fill="#1f2937">Models</text>
+  <text x="686" y="358" font-size="12.5" fill="#475569">embeddings: Ollama (local, free)</text>
+  <text x="686" y="377" font-size="12.5" fill="#475569">extraction: Ollama / Gemini / Claude</text>
+
+  <!-- double arrow graphiti <-> ollama -->
+  <line x1="524" y1="349" x2="646" y2="349" stroke="#8a94a6" stroke-width="2" marker-end="url(#arw)" marker-start="url(#arwL)"/>
+  <text x="585" y="340" font-size="11.5" fill="#667085" text-anchor="middle">extract + embed</text>
+
+  <!-- caption -->
+  <text x="520" y="556" font-size="13.5" fill="#5b6675" text-anchor="middle">Shared, persistent, temporal memory &#8212; what one agent learns, every agent can recall.</text>
+</svg>

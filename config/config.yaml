@@ -1,0 +1,105 @@
+# Graphiti MCP Server configuration.
+# Supports env-var expansion: ${VAR} or ${VAR:default}.
+# Defaults use LOCAL Ollama. To switch to a cloud LLM (Gemini/OpenAI) you only
+# edit the .env file — no need to touch this file.
+
+server:
+  transport: "http"          # http | sse | stdio
+  host: "0.0.0.0"           # bind inside the container; published to 127.0.0.1
+  port: 8020
+
+# ---------------------------------------------------------------------------
+# LLM used to extract entities/relationships from each memory.
+# Default: local Ollama via its OpenAI-compatible endpoint.
+# ---------------------------------------------------------------------------
+llm:
+  # openai  -> Ollama, Gemini (OpenAI endpoint), OpenAI, LM Studio, …
+  # anthropic -> Claude (native; needs the built image, see README)
+  provider: ${LLM_PROVIDER:openai}
+  model: ${MODEL_NAME:qwen2.5-brain}
+  max_tokens: 4096
+  # REQUIRED for the anthropic provider (it rejects a null temperature with 400);
+  # harmless for every other provider. 0 = deterministic extraction.
+  temperature: ${LLM_TEMPERATURE:0}
+  # json_object is the most reliable mode with Ollama / OpenAI-compatible servers.
+  structured_output_mode: ${LLM_STRUCTURED_OUTPUT_MODE:json_object}
+
+  providers:
+    openai:
+      api_key: ${OPENAI_API_KEY:ollama}
+      api_url: ${OPENAI_API_URL:http://host.docker.internal:11434/v1}
+    gemini:
+      api_key: ${GOOGLE_API_KEY:}
+    anthropic:
+      api_key: ${ANTHROPIC_API_KEY:}
+    groq:
+      api_key: ${GROQ_API_KEY:}
+
+# ---------------------------------------------------------------------------
+# Embeddings — local Ollama (nomic-embed-text, 768 dimensions).
+# ---------------------------------------------------------------------------
+embedder:
+  provider: ${EMBEDDER_PROVIDER:openai}
+  model: ${EMBEDDER_MODEL:nomic-embed-text}
+  dimensions: ${EMBEDDER_DIMENSIONS:768}
+
+  providers:
+    openai:
+      api_key: ${OPENAI_API_KEY:ollama}
+      api_url: ${EMBEDDER_API_URL:http://host.docker.internal:11434/v1}
+    gemini:
+      api_key: ${GOOGLE_API_KEY:}
+    voyage:
+      api_key: ${VOYAGE_API_KEY:}
+
+# ---------------------------------------------------------------------------
+# Graph database — Neo4j (reached by service name on the compose network).
+# ---------------------------------------------------------------------------
+database:
+  provider: "neo4j"
+  providers:
+    neo4j:
+      uri: ${NEO4J_URI:bolt://neo4j:7687}
+      username: ${NEO4J_USER:neo4j}
+      password: ${NEO4J_PASSWORD}
+      database: ${NEO4J_DATABASE:neo4j}
+      use_parallel_runtime: false
+
+# ---------------------------------------------------------------------------
+# Graphiti — default group and ontology.
+# The ontology is a GUIDE for extraction; Graphiti still extracts entities and
+# relationships dynamically when text doesn't fit these types. Kept deliberately
+# small so it doesn't overwhelm a local model. Edit freely for your domain.
+# ---------------------------------------------------------------------------
+graphiti:
+  group_id: ${GRAPHITI_GROUP_ID:global}
+  user_id: ${USER_ID:agents}
+  entity_types:
+    - name: "Person"
+      description: "An individual person."
+    - name: "Organization"
+      description: "A company, client, vendor, team or formal group."
+    - name: "Project"
+      description: "A project or initiative."
+    - name: "Technology"
+      description: "A language, framework, tool or software product."
+    - name: "Service"
+      description: "A running service or application (container, API, daemon)."
+    - name: "Server"
+      description: "A server, machine or host (physical or virtual)."
+    - name: "Repository"
+      description: "A code repository."
+    - name: "Decision"
+      description: "A decision that was made, with its reason when known."
+    - name: "Problem"
+      description: "A problem, bug or incident encountered."
+    - name: "Solution"
+      description: "The fix or solution applied to a problem."
+    - name: "Configuration"
+      description: "A non-secret setting, port or configuration parameter."
+    - name: "Task"
+      description: "A task or unit of work."
+    - name: "Event"
+      description: "A time-stamped event (deploy, migration, update)."
+    - name: "Document"
+      description: "A document, note or piece of knowledge."

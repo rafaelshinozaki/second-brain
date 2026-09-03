@@ -1,0 +1,76 @@
+# AI Second Brain — shared memory for AI agents
+# Neo4j (knowledge graph) + Graphiti MCP (temporal memory exposed over MCP)
+#
+# By default everything is bound to 127.0.0.1 (localhost) — the safest setup,
+# meant for agents running on THIS same machine. To reach it from other machines
+# (LAN / Tailscale) see the README section "Remote access".
+#
+# The MCP container reaches Ollama on your host via host.docker.internal.
+#   - macOS / Windows (Docker Desktop): works out of the box.
+#   - Linux: make Ollama listen on all interfaces (OLLAMA_HOST=0.0.0.0) OR use
+#     the containerized Ollama overlay (docker-compose.ollama.yml). See README.
+
+services:
+  neo4j:
+    image: neo4j:5.26.0
+    container_name: second-brain-neo4j
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:7474:7474"   # Neo4j Browser (UI)
+      - "127.0.0.1:7687:7687"   # Bolt (driver)
+    environment:
+      - NEO4J_AUTH=${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD}
+      # Memory tuned for modest hardware; raise if you have RAM to spare.
+      - NEO4J_server_memory_heap_initial__size=512m
+      - NEO4J_server_memory_heap_max__size=1G
+      - NEO4J_server_memory_pagecache_size=1G
+    volumes:
+      - ./data/neo4j/data:/data
+      - ./data/neo4j/logs:/logs
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:7474"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  graphiti-mcp:
+    # Built from ./Dockerfile: the upstream image + Anthropic SDK + a patch so
+    # the `openai` provider uses Chat Completions (works with every LLM option).
+    # First run: `docker compose up -d --build`.
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-second-brain-mcp:local
+    container_name: second-brain-mcp
+    restart: unless-stopped
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - CONFIG_PATH=/app/mcp/config/config.yaml
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - NEO4J_DATABASE=neo4j
+      - GRAPHITI_GROUP_ID=${GRAPHITI_GROUP_ID:-global}
+      - SEMAPHORE_LIMIT=${SEMAPHORE_LIMIT:-2}
+      - EXTRACTION_PAID_THRESHOLD=${EXTRACTION_PAID_THRESHOLD:-5}
+      - EXTRACTION_BURST_WINDOW_SEC=${EXTRACTION_BURST_WINDOW_SEC:-8}
+      - OLLAMA_MODEL_NAME=${OLLAMA_MODEL_NAME:-qwen2.5-brain}
+      - OLLAMA_API_URL=${OLLAMA_API_URL:-http://host.docker.internal:11434/v1}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # reach host Ollama (Linux)
+    ports:
+      - "127.0.0.1:8020:8020"   # MCP HTTP endpoint (localhost only by default)
+    volumes:
+      - ./config/config.yaml:/app/mcp/config/config.yaml:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8020/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    command: ["uv", "run", "main.py"]
