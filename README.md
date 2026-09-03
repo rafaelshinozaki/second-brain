@@ -59,7 +59,7 @@ stack plus your local [Ollama](https://ollama.com) models.
 ## Quick start
 
 ```bash
-git clone https://github.com/abelgonzalezr/ai-second-brain.git
+git clone https://github.com/rafaelshinozaki/ai-second-brain.git
 cd ai-second-brain
 bash scripts/setup.sh
 ```
