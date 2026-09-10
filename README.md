@@ -151,8 +151,13 @@ does Acme use?"* or *"where does Odoo run?"* and get the answer via hybrid searc
 
 The MCP tools exposed are roughly: `add_memory`, `search_memory_facts`,
 `search_nodes`, `get_episodes`, plus a few management tools (`get_status`,
-`clear_graph`, `delete_episode`, …). Run `scripts/test-brain.sh` to see the live
-list and a full insert→search test.
+`get_queue_status`, `clear_graph`, `delete_episode`, …). Run
+`scripts/test-brain.sh` to see the live list and a full insert→search test.
+
+> `get_queue_status` (per-group pending-episode count) is a local addition to
+> this fork, patched into the gitignored `config/graphiti_mcp_server.py` — see
+> [`docs/USO-SECOND-BRAIN.md`](docs/USO-SECOND-BRAIN.md#reabilitar-acesso-remoto-do-zero-se-precisar)
+> for how to reapply it if that file ever gets regenerated.
 
 ---
 

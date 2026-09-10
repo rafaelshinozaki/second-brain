@@ -7,7 +7,10 @@ others learned.
 
 The MCP server is named `second-brain`. Its main tools are: add a memory, search
 facts, search nodes, and list episodes (the exact names are shown when you
-connect, or via `scripts/test-brain.sh`).
+connect, or via `scripts/test-brain.sh`). There is also `get_queue_status()`,
+which reports how many episodes are still waiting (per group) after a burst of
+`add_memory` calls — useful to confirm a batch finished processing before
+searching for it.
 
 ---
 

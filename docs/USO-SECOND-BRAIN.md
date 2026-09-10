@@ -152,11 +152,59 @@ pwsh -File scripts\backup.ps1                   # backup manual (direto)
 
 Se o arquivo com patch sumir ou a config resetar:
 
-1. Extrair e aplicar o patch de host no MCP:
+1. Extrair e aplicar os patches no MCP:
    ```powershell
    docker cp second-brain-mcp:/app/mcp/src/graphiti_mcp_server.py config/graphiti_mcp_server.py
    # adicione host='0.0.0.0' no bloco FastMCP(...) (ver git deste arquivo)
    ```
+   E reaplique a tool `get_queue_status` (não sobrevive a essa regeneração, já que o
+   arquivo é git-ignored): cole o snippet abaixo logo antes de
+   `@mcp.custom_route('/health', methods=['GET'])`, no mesmo arquivo
+   `config/graphiti_mcp_server.py`.
+   ```python
+   @mcp.tool()
+   async def get_queue_status() -> StatusResponse:
+       """Get how many episodes are still pending processing, per group_id.
+
+       'Pending' counts episodes waiting in the queue (not yet picked up by the
+       worker). If a group's worker is currently running, one additional episode
+       is being processed right now on top of that count.
+       """
+       global queue_service
+
+       if queue_service is None:
+           return StatusResponse(status='error', message='Queue service not initialized')
+
+       try:
+           group_ids = sorted(queue_service._episode_queues.keys())
+           if not group_ids:
+               return StatusResponse(
+                   status='ok',
+                   message='No episodes have been queued since the server last started.',
+               )
+
+           total_waiting = 0
+           parts = []
+           for group_id in group_ids:
+               waiting = queue_service.get_queue_size(group_id)
+               running = queue_service.is_worker_running(group_id)
+               total_waiting += waiting
+               parts.append(
+                   f"{group_id}: {waiting} waiting"
+                   + (' + 1 processing now' if running else ' (worker idle)')
+               )
+
+           return StatusResponse(
+               status='ok',
+               message=f'{total_waiting} episode(s) waiting across all groups. ' + '; '.join(parts),
+           )
+       except Exception as e:
+           error_msg = str(e)
+           logger.error(f'Error reading queue status: {error_msg}')
+           return StatusResponse(status='error', message=f'Error reading queue status: {error_msg}')
+   ```
+   Depois de colar, `docker compose restart graphiti-mcp` já aplica (o arquivo é
+   bind-mounted, não precisa rebuild).
 2. Confirmar `docker-compose.remote.yml` publicando em `192.168.15.2` e montando
    o arquivo com patch.
 3. Firewall (uma vez, como Administrador): `scripts\enable-remote-firewall.ps1`.
