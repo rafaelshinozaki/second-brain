@@ -88,10 +88,20 @@ def patch_server(src: str) -> tuple[str, int]:
 
     src, applied = _replace_once(
         src,
-        'from services.factories import DatabaseDriverFactory, EmbedderFactory, LLMClientFactory\n'
+        'from services.factories import (\n'
+        '    CrossEncoderFactory,\n'
+        '    DatabaseDriverFactory,\n'
+        '    EmbedderFactory,\n'
+        '    LLMClientFactory,\n'
+        ')\n'
         'from services.queue_service import QueueService\n',
         'from services.extraction_router import describe as describe_extraction_route\n'
-        'from services.factories import DatabaseDriverFactory, EmbedderFactory, LLMClientFactory\n'
+        'from services.factories import (\n'
+        '    CrossEncoderFactory,\n'
+        '    DatabaseDriverFactory,\n'
+        '    EmbedderFactory,\n'
+        '    LLMClientFactory,\n'
+        ')\n'
         'from services.queue_service import QueueService\n',
         'imports',
     )
@@ -99,10 +109,8 @@ def patch_server(src: str) -> tuple[str, int]:
 
     src, applied = _replace_once(
         src,
+        '        self.client: Graphiti | None = None\n',
         '        self.client: Graphiti | None = None\n'
-        '        self.entity_types = None\n',
-        '        self.client: Graphiti | None = None\n'
-        '        self.entity_types = None\n'
         '        self.llm_paid = None\n'
         '        self.llm_ollama = None\n'
         '        self.llm_lock = asyncio.Lock()\n',
