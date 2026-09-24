@@ -17,10 +17,15 @@ searching for it.
 ## BEFORE an important task
 
 1. **Search** the brain for anything related to the task.
-2. Check **previous decisions** on the topic.
-3. Check the **existing architecture** (servers, services, technologies).
-4. Check **known problems** and their solutions.
-5. Use that context so you don't repeat mistakes or re-decide settled things.
+2. For **The Hackett Group / XDA / AIX / Kainam / Mirador**, search the live
+   graph with `group_ids: ["global", "software", "hackett"]`. That is the
+   Atenea export imported on 2026-09-16 (Entity / Episodic / MENTIONS /
+   RELATES_TO). Do not omit `group_ids` or you will only hit the default
+   `global` slice.
+3. Check **previous decisions** on the topic.
+4. Check the **existing architecture** (servers, services, technologies).
+5. Check **known problems** and their solutions.
+6. Use that context so you don't repeat mistakes or re-decide settled things.
 
 ---
 

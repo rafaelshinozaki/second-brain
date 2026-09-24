@@ -1,6 +1,8 @@
 # Generated for remote access on the local network (trusted network only).
-# Exposes the brain on the LAN IP 192.168.15.2 in addition to localhost, and
-# mounts the patched MCP server (host='0.0.0.0') so it accepts remote Host headers.
+# Exposes the brain on the LAN IP 192.168.15.2 in addition to localhost.
+# Upstream Graphiti MCP already binds 0.0.0.0 — no host= patch needed.
+# POST /mcp still rejects Host: 192.168.15.2:8020 (421). Clients on the Mac
+# must send Host: 127.0.0.1:8020 (see docs/USO-SECOND-BRAIN.md).
 #
 # Bring the stack up with BOTH files:
 #   docker compose -f docker-compose.yml -f docker-compose.remote.yml up -d

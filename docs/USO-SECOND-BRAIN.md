@@ -17,9 +17,18 @@ cérebro (servidor) e como o **Mac** (ou qualquer máquina da rede) usa como
   sozinhos no boot — mais o **Ollama nativo** (extração + embeddings no CPU/GPU).
 - **Extração:** local no Ollama (`qwen2.5-brain` + `nomic-embed-text`),
   assíncrona (pode levar minutos por memória; não bloqueia o agente).
-- **Acesso remoto habilitado:** as portas foram publicadas na LAN e o MCP levou
-  um patch (`host='0.0.0.0'`) para aceitar conexões de fora. Firewall do Windows
-  liberado nas portas `8020/7474/7687` **só para a sub-rede local**.
+- **Acesso remoto habilitado:** as portas foram publicadas na LAN via
+  `docker-compose.remote.yml`. A imagem upstream do Graphiti MCP **já escuta
+  `0.0.0.0`** — o patch antigo de `host='0.0.0.0'` documentado neste repo **não
+  foi necessário**. Firewall do Windows liberado nas portas `8020/7474/7687`
+  **só para a sub-rede `192.168.15.x`** (nada exposto à internet).
+- **Host header (Mac → Cursor):** `/health` aceita `Host: 192.168.15.2:8020`,
+  mas `POST /mcp` devolve `421 Invalid Host header`. O uvicorn/Starlette só
+  aceita `Host: 127.0.0.1:8020` ou `Host: localhost:8020`. No Mac, o
+  `~/.cursor/mcp.json` manda `"headers": { "Host": "127.0.0.1:8020" }` junto
+  da URL `http://192.168.15.2:8020/mcp`. Se o Cursor ignorar o header, rode
+  `python3 scripts/mac-mcp-host-proxy.py` e aponte o MCP para
+  `http://127.0.0.1:18020/mcp`.
 - **Backup automático:** tarefa agendada no Windows (`SecondBrainBackup`, diária
   03:15) via `scripts/backup.ps1` → dumps em `./backups` (retenção 14 dias).
 - **Regras para agentes:** `AGENTS.md` (na raiz) define o protocolo
@@ -27,8 +36,18 @@ cérebro (servidor) e como o **Mac** (ou qualquer máquina da rede) usa como
   `.cursor/rules/second-brain.mdc` apontando pro mesmo cérebro (grupo `aixelerator`).
 - **Comando `/reuniao`:** versionado em [`.cursor/commands/reuniao.md`](../.cursor/commands/reuniao.md)
   — cola as notas do Granola e ele salva como memórias atômicas.
-- **Conteúdo já no grafo:** ~43 memórias mapeando o ecossistema
-  Aixelerator / Kainam / Mirador (repos, stacks, arquitetura, integrações).
+- **Fonte Hackett / XDA (a partir de 2026-09-16):** o export lógico da Atenea
+  (`backups/hackett-xda-current`) foi **importado no Neo4j vivo** do PC
+  Windows via `scripts/import-hackett-backup.py` (MERGE por `uuid`,
+  idempotente). 748 nós + 2213 arestas: `Episodic`, `Entity` tipados
+  (Person, Organization, Project, Repository, …), `MENTIONS` e `RELATES_TO`.
+  Grupos: `global`, `software`, `hackett`, `aprendizaje`, `amonsolutions`.
+  Busque no MCP com `group_ids: ["global","software","hackett"]`. Reimportar:
+
+  ```bash
+  NEO4J_URI=bolt://192.168.15.2:7687 NEO4J_PASSWORD=... \
+    python3 scripts/import-hackett-backup.py
+  ```
 
 ### Grupos (`group_id`) em uso
 
@@ -42,6 +61,7 @@ pessoais usam `personal-`; projetos de outra empresa usam o nome dela.
 | `global` | Conhecimento transversal, sobre você/a máquina, e a própria convenção de grupos |
 | `hackett-aixelerator` | Ecossistema Aixelerator / AIX / Kainam / Mirador (The Hackett Group) |
 | `hackett-xda` | Achados e reuniões específicas do projeto XDA (The Hackett Group) |
+| `hackett-workspace` | Mapa dos repos do Mac e a relação de dono com The Hackett Group |
 | `hackett-avira-health` | Projeto Avira Health (The Hackett Group) |
 | `personal-<projeto>` | Projetos pessoais |
 | `<empresa>-<projeto>` | Projetos de outras empresas |
@@ -89,13 +109,17 @@ ao global `~/.cursor/mcp.json`:
 ```json
 {
   "mcpServers": {
-    "second-brain": { "url": "http://192.168.15.2:8020/mcp" }
+    "second-brain": {
+      "url": "http://192.168.15.2:8020/mcp",
+      "headers": { "Host": "127.0.0.1:8020" }
+    }
   }
 }
 ```
 
 Recarregue o Cursor e confira em **Settings → MCP**. O endpoint é **sem barra no
-final** (`/mcp`, não `/mcp/`).
+final** (`/mcp`, não `/mcp/`). O `Host` reescrito é obrigatório: sem ele o
+`POST /mcp` responde `421 Invalid Host header`.
 
 ### 3. Claude Code
 
@@ -152,13 +176,14 @@ pwsh -File scripts\backup.ps1                   # backup manual (direto)
 
 Se o arquivo com patch sumir ou a config resetar:
 
-1. Extrair e aplicar os patches no MCP:
+1. A imagem upstream **já escuta `0.0.0.0`** — não reaplique o patch antigo de
+   `host='0.0.0.0'`. Extraia o arquivo só se precisar recolocar a tool
+   `get_queue_status` (não sobrevive a essa regeneração, já que o arquivo é
+   git-ignored):
    ```powershell
    docker cp second-brain-mcp:/app/mcp/src/graphiti_mcp_server.py config/graphiti_mcp_server.py
-   # adicione host='0.0.0.0' no bloco FastMCP(...) (ver git deste arquivo)
    ```
-   E reaplique a tool `get_queue_status` (não sobrevive a essa regeneração, já que o
-   arquivo é git-ignored): cole o snippet abaixo logo antes de
+   Cole o snippet abaixo logo antes de
    `@mcp.custom_route('/health', methods=['GET'])`, no mesmo arquivo
    `config/graphiti_mcp_server.py`.
    ```python
@@ -205,8 +230,9 @@ Se o arquivo com patch sumir ou a config resetar:
    ```
    Depois de colar, `docker compose restart graphiti-mcp` já aplica (o arquivo é
    bind-mounted, não precisa rebuild).
-2. Confirmar `docker-compose.remote.yml` publicando em `192.168.15.2` e montando
-   o arquivo com patch.
+2. Confirmar `docker-compose.remote.yml` publicando em `192.168.15.2`. O volume
+   do `graphiti_mcp_server.py` só é necessário se você reaplicou
+   `get_queue_status`.
 3. Firewall (uma vez, como Administrador): `scripts\enable-remote-firewall.ps1`.
 4. Subir com os dois compose (comando acima).
 
@@ -235,6 +261,14 @@ Se `curl http://192.168.15.2:8020/health` falhar do Mac:
 - Confirme as regras de firewall no PC:
   `Get-NetFirewallRule -DisplayName 'Second Brain*'`.
 - Endpoint MCP é **sem barra final** (`/mcp`).
+- Se `/health` funcionar mas o Cursor ficar vermelho: é o `421 Invalid Host
+  header` em `POST /mcp`. Confira o `headers.Host` no `mcp.json` ou use
+  `scripts/mac-mcp-host-proxy.py`.
+- Escrita no grafo (imagem atual): `add_memory` falha com
+  `QueueService.add_episode() unexpected keyword argument 'reference_time'`.
+  `add_triplet` grava a **primeira** aresta de um `group_id` e depois quebra
+  com `EdgeDuplicate`. Mapa completo dos repos está no grupo
+  `hackett-workspace` (uma fact `OWNS_WORKSPACE`).
 
 > 🔒 O MCP **não tem autenticação própria**. Só está exposto à LAN (firewall
 > restrito à sub-rede local). **Nunca** exponha essas portas direto na internet.
